@@ -51,7 +51,7 @@
 	var _test = __webpack_require__(2);
 	
 	(0, _test.blegh)();
-	console.log("from server");
+	console.log("from sup");
 
 /***/ },
 /* 1 */
