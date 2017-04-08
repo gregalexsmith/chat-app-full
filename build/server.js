@@ -121,6 +121,12 @@
 	// Socket
 	io.on("connection", function (socket) {
 	  console.log('Got connection from ' + socket.request.connection.remoteAddress);
+	
+	  var index = 0;
+	  setInterval(function () {
+	    socket.emit("test", 'On index ' + index);
+	    index++;
+	  }, 1000);
 	});
 	
 	// -------------------------
@@ -192,7 +198,7 @@
 	var webpack = __webpack_require__(8);
 	var ExtractTextPlugin = __webpack_require__(11);
 	
-	var vendorModules = ["jquery"];
+	var vendorModules = ["jquery", "lodash", "socket.io-client", "rxjs"];
 	
 	// dirname for using webpack hot middleware on the server
 	// __dirname will work when using webpack from gulp or command line

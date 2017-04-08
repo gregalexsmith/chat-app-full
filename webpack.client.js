@@ -2,7 +2,7 @@ var path = require("path");
 var webpack = require("webpack");
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
 
-const vendorModules = ["jquery"];
+const vendorModules = ["jquery", "lodash", "socket.io-client", "rxjs"];
 
 // dirname for using webpack hot middleware on the server
 // __dirname will work when using webpack from gulp or command line
