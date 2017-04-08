@@ -1,2 +1,78 @@
-!function(e){function r(t){if(o[t])return o[t].exports;var n=o[t]={exports:{},id:t,loaded:!1};return e[t].call(n.exports,n,n.exports,r),n.loaded=!0,n.exports}var o={};return r.m=e,r.c=o,r.p="",r(0)}([function(e,r,o){"use strict";o(1);var t=o(2);(0,t.blegh)(),console.log("from server")},function(e,r){e.exports=require("source-map-support/register")},function(e,r){"use strict";function o(){console.log("working")}Object.defineProperty(r,"__esModule",{value:!0}),r.blegh=o}]);
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId])
+/******/ 			return installedModules[moduleId].exports;
+/******/
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			exports: {},
+/******/ 			id: moduleId,
+/******/ 			loaded: false
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(0);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	__webpack_require__(1);
+	
+	var _test = __webpack_require__(2);
+	
+	(0, _test.blegh)();
+	console.log("from server");
+
+/***/ },
+/* 1 */
+/***/ function(module, exports) {
+
+	module.exports = require("source-map-support/register");
+
+/***/ },
+/* 2 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.blegh = blegh;
+	function blegh() {
+	  console.log("working");
+	}
+
+/***/ }
+/******/ ]);
 //# sourceMappingURL=server.js.map
