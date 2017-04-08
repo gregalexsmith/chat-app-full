@@ -244,7 +244,7 @@
 	      }
 	    },
 	    module: {
-	      loaders: [{ test: /\.js$/, loader: "babel", exclude: "/node_modules/" }, { test: /\.js$/, loader: "eslint", exclude: "/node_modules/" }, { test: /\.(png|jpg|jpeg|gif|woff|ttf|eot|svg|woff2)$/, loader: "url-loader?limit=512", exclude: "/node_modules" }, cssLoader, sassLoader]
+	      loaders: [{ test: /\.js$/, loader: "babel", exclude: "/node_modules/" }, { test: /\.js$/, loader: "eslint", exclude: "/node_modules/" }, { test: /\.(png|jpg|jpeg|gif|woff|ttf|eot|svg|woff2)/, loader: "url-loader?limit=1024" }, cssLoader, sassLoader]
 	    },
 	    plugins: plugins
 	  };
