@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import { ElementComponent } from '../../lib/component';
+import './player.scss';
 
 class PlayerComponent extends ElementComponent {
   constructor() {
