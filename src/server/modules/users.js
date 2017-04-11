@@ -26,7 +26,7 @@ export class UsersModule extends ModuleBase {
     // control the lightness to work with a background
     const lightness = 100 - (hash % 15 + 35);
 
-    return `hsl${hue}, ${saturation}, ${lightness}%)`;
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
   }
 
   // allow the client to request a list of users
@@ -38,6 +38,7 @@ export class UsersModule extends ModuleBase {
       const username = `New User ${index}`;
       const user = {name: username, color: this.getColorForUsername(username)};
       client.emit("users:added", user);
+      index++;
     }, 2000);
 
     client.onActions({

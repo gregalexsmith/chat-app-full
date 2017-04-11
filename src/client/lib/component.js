@@ -1,4 +1,11 @@
 import $ from "jquery";
+import { Observable } from 'rxjs';
+
+Observable.prototype.compSubscribe = function(component, ...args) {
+  let subscription = this.subscribe(...args);
+  component._onDetachHandlers.push(() => subscription.unsubscribe());
+  return subscription;
+};
 
 // Component Base
 // a thin base class for all of our UI components
