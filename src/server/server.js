@@ -69,7 +69,7 @@ const playlistRepository = {};
 
 // -------------------------
 // Modules
-const users = UsersModule(io);
+const users = new UsersModule(io);
 const chat = new ChatModule(io, users);
 const playlist = new PlaylistModule(io, users, playlistRepository, videoServices);
 

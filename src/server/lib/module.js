@@ -14,7 +14,7 @@ export class ModuleBase {
 
   }
 
-  clientRegister(client) {
+  clientRegistered(client) {
 
   }
 }

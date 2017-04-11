@@ -23,15 +23,12 @@ class PlaylistComponent extends ComponentBase {
     this._$scrollArea = $('<div class="scroll-area" />').appendTo(this._$chrome);
 
     const list = new PlaylistListComponent();
-    console.log(list);
     list.attach(this._$scrollArea);
 
     const contextMenu = new PlaylistContextMenuComponent();
-    console.log(contextMenu);
     contextMenu.attach(this._$scrollArea);
 
     const chrome = new PlaylistChromeComponent();
-    console.log(chrome);
     chrome.attach(this._$chrome);
 
     this.children.push(toolbar, list, contextMenu, chrome);

@@ -70,9 +70,9 @@
 	
 	var _users = __webpack_require__(8);
 	
-	var _playlist = __webpack_require__(9);
+	var _playlist = __webpack_require__(11);
 	
-	var _chat = __webpack_require__(10);
+	var _chat = __webpack_require__(12);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -89,10 +89,10 @@
 	// -------------------------
 	// Client Webpack
 	if (process.env.USE_WEBPACK === "true") {
-	  var webpackMiddleware = __webpack_require__(11);
-	  var webpackHotMiddleware = __webpack_require__(12);
-	  var webpack = __webpack_require__(13);
-	  var clientConfig = __webpack_require__(14);
+	  var webpackMiddleware = __webpack_require__(13);
+	  var webpackHotMiddleware = __webpack_require__(14);
+	  var webpack = __webpack_require__(15);
+	  var clientConfig = __webpack_require__(16);
 	  var compiler = webpack(clientConfig);
 	  app.use(webpackMiddleware(compiler, {
 	    // tells webpack what path to intercept
@@ -133,7 +133,7 @@
 	
 	// -------------------------
 	// Modules
-	var users = (0, _users.UsersModule)(io);
+	var users = new _users.UsersModule(io);
 	var chat = new _chat.ChatModule(io, users);
 	var playlist = new _playlist.PlaylistModule(io, users, playlistRepository, videoServices);
 	
@@ -367,6 +367,7 @@
 	
 	    // ---------------------
 	    // Emit (Client Side)
+	
 	    // send an action to the server
 	    // expects a callback with an id
 	
@@ -491,6 +492,14 @@
 	        }
 	      });
 	    }
+	  }, {
+	    key: "onActions",
+	    value: function onActions(actions) {
+	      for (var action in actions) {
+	        if (!actions.hasOwnProperty(action)) continue;
+	        this.onAction(action, actions[action]);
+	      }
+	    }
 	
 	    // figure out if we need to display a specific error
 	    // checks for clientMessage on the thrown Error
@@ -519,7 +528,15 @@
 	});
 	exports.UsersModule = undefined;
 	
-	var _module = __webpack_require__(17);
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _lodash = __webpack_require__(10);
+	
+	var _lodash2 = _interopRequireDefault(_lodash);
+	
+	var _module = __webpack_require__(9);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
@@ -536,9 +553,49 @@
 	    var _this = _possibleConstructorReturn(this, (UsersModule.__proto__ || Object.getPrototypeOf(UsersModule)).call(this));
 	
 	    _this._io = io;
+	    _this._usersList = [{ name: "Foo", color: _this.getColorForUsername("Foo") }, { name: "Bar", color: _this.getColorForUsername("Bar") }, { name: "Baz", color: _this.getColorForUsername("Baz") }];
 	    return _this;
 	  }
 	
+	  // Generate hsl color based of a username
+	
+	
+	  _createClass(UsersModule, [{
+	    key: 'getColorForUsername',
+	    value: function getColorForUsername(username) {
+	      // get a number that represents a username using a hash
+	      var hash = _lodash2.default.reduce(username, function (hash, ch) {
+	        return ch.charCodeAt(0) + (hash << 6) + (hash << 16) - hash;
+	      }, 0);
+	
+	      // convert the hash to a color
+	      hash = Math.abs(hash);
+	      var hue = hash % 360;
+	      var saturation = hash % 25 + 70; // add 70 for decent saturation
+	      // control the lightness to work with a background
+	      var lightness = 100 - (hash % 15 + 35);
+	
+	      return 'hsl' + hue + ', ' + saturation + ', ' + lightness + '%)';
+	    }
+	
+	    // allow the client to request a list of users
+	
+	  }, {
+	    key: 'registerClient',
+	    value: function registerClient(client) {
+	      var _this2 = this;
+	
+	      client.onActions({
+	        "users:list": function usersList() {
+	          return _this2._usersList;
+	        },
+	        "auth:login": function authLogin() {},
+	        "auth:logout": function authLogout() {}
+	
+	      });
+	    }
+	  }]);
+
 	  return UsersModule;
 	}(_module.ModuleBase);
 
@@ -551,9 +608,61 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+	exports.ModuleBase = undefined;
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*eslint no-unused-vars: "off" */
+	
+	
+	var _rxjs = __webpack_require__(6);
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var ModuleBase = exports.ModuleBase = function () {
+	  function ModuleBase() {
+	    _classCallCheck(this, ModuleBase);
+	  }
+	
+	  _createClass(ModuleBase, [{
+	    key: 'init$',
+	
+	    // defines callback methods
+	    // allows modules to initalize asyncronsly
+	
+	    value: function init$() {
+	      return _rxjs.Observable.empty();
+	    }
+	
+	    // gets a client instance
+	
+	  }, {
+	    key: 'registerClient',
+	    value: function registerClient(client) {}
+	  }, {
+	    key: 'clientRegistered',
+	    value: function clientRegistered(client) {}
+	  }]);
+
+	  return ModuleBase;
+	}();
+
+/***/ },
+/* 10 */
+/***/ function(module, exports) {
+
+	module.exports = require("lodash");
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
 	exports.PlaylistModule = undefined;
 	
-	var _module = __webpack_require__(17);
+	var _module = __webpack_require__(9);
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
@@ -583,7 +692,7 @@
 	}(_module.ModuleBase);
 
 /***/ },
-/* 10 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -593,7 +702,7 @@
 	});
 	exports.ChatModule = undefined;
 	
-	var _module = __webpack_require__(17);
+	var _module = __webpack_require__(9);
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
@@ -618,32 +727,32 @@
 	}(_module.ModuleBase);
 
 /***/ },
-/* 11 */
+/* 13 */
 /***/ function(module, exports) {
 
 	module.exports = require("webpack-dev-middleware");
 
 /***/ },
-/* 12 */
+/* 14 */
 /***/ function(module, exports) {
 
 	module.exports = require("webpack-hot-middleware");
 
 /***/ },
-/* 13 */
+/* 15 */
 /***/ function(module, exports) {
 
 	module.exports = require("webpack");
 
 /***/ },
-/* 14 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var path = __webpack_require__(15);
-	var webpack = __webpack_require__(13);
-	var ExtractTextPlugin = __webpack_require__(16);
+	var path = __webpack_require__(17);
+	var webpack = __webpack_require__(15);
+	var ExtractTextPlugin = __webpack_require__(18);
 	
 	var vendorModules = ["jquery", "socket.io-client", "rxjs"];
 	
@@ -707,62 +816,16 @@
 	module.exports.create = createConfig;
 
 /***/ },
-/* 15 */
+/* 17 */
 /***/ function(module, exports) {
 
 	module.exports = require("path");
 
 /***/ },
-/* 16 */
+/* 18 */
 /***/ function(module, exports) {
 
 	module.exports = require("extract-text-webpack-plugin");
-
-/***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.ModuleBase = undefined;
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*eslint no-unused-vars: "off" */
-	
-	
-	var _rxjs = __webpack_require__(6);
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	var ModuleBase = exports.ModuleBase = function () {
-	  function ModuleBase() {
-	    _classCallCheck(this, ModuleBase);
-	  }
-	
-	  _createClass(ModuleBase, [{
-	    key: 'init$',
-	
-	    // defines callback methods
-	    // allows modules to initalize asyncronsly
-	
-	    value: function init$() {
-	      return _rxjs.Observable.empty();
-	    }
-	
-	    // gets a client instance
-	
-	  }, {
-	    key: 'registerClient',
-	    value: function registerClient(client) {}
-	  }, {
-	    key: 'clientRegister',
-	    value: function clientRegister(client) {}
-	  }]);
-
-	  return ModuleBase;
-	}();
 
 /***/ }
 /******/ ]);

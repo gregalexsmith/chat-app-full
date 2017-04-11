@@ -62,6 +62,7 @@ export class ObservableSocket {
 
   // ---------------------
   // Emit (Client Side)
+
   // send an action to the server
   // expects a callback with an id
   emitAction$(action, arg) {
@@ -161,7 +162,7 @@ export class ObservableSocket {
             console.error(error.stack || error);
           },
           complete: () => {
-            if(!hasValue)
+            if (!hasValue)
               this._socket.emit(action, null, requestId);
           }
         });
@@ -174,6 +175,14 @@ export class ObservableSocket {
         console.error(error.stack || error);
       }
     });
+  }
+
+  onActions(actions) {
+    for (let action in actions) {
+      if (!actions.hasOwnProperty(action))
+        continue;
+      this.onAction(action, actions[action]);
+    }
   }
 
   // figure out if we need to display a specific error

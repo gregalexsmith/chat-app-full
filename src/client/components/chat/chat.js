@@ -18,8 +18,6 @@ class ChatComponent extends ComponentBase {
     list.attach(this._$mount);
     this.children.push(list);
 
-    console.log(this);
-
     const form = new ChatFormComponent();
     form.attach(this._$mount);
     this.children.push(form);
