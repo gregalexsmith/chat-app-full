@@ -66,6 +66,8 @@
 	
 	var _rxjs = __webpack_require__(6);
 	
+	__webpack_require__(19);
+	
 	var _observableSocket = __webpack_require__(7);
 	
 	var _users = __webpack_require__(8);
@@ -835,6 +837,27 @@
 /***/ function(module, exports) {
 
 	module.exports = require("extract-text-webpack-plugin");
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _rxjs = __webpack_require__(6);
+	
+	_rxjs.Observable.prototype.safeSubscribe = function (next, error, complete) {
+	  var subscription = this.subscribe(function (item) {
+	    try {
+	      next(item);
+	    } catch (e) {
+	      console.error(e.stack || e);
+	      subscription.unsubscribe();
+	    }
+	  }, error, complete);
+	
+	  return subscription;
+	};
 
 /***/ }
 /******/ ]);

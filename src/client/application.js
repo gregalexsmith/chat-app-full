@@ -1,6 +1,6 @@
-import * as services from './services';
-
+import "shared/operators";
 import "./application.scss";
+import * as services from './services';
 
 // ---------------------
 // Playground
