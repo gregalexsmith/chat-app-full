@@ -31,6 +31,15 @@ export class UsersModule extends ModuleBase {
 
   // allow the client to request a list of users
   registerClient(client) {
+
+    // fake create a new user every 2 seconds
+    let index = 0;
+    setInterval(() => {
+      const username = `New User ${index}`;
+      const user = {name: username, color: this.getColorForUsername(username)};
+      client.emit("users:added", user);
+    }, 2000);
+
     client.onActions({
       "users:list": () => {
         return this._usersList;
