@@ -6,7 +6,10 @@ import socketIo from 'socket.io';
 import chalk from 'chalk';
 import { Observable } from 'rxjs';
 
-import { ObservableSocket, clientMessage } from 'shared/observable-socket';
+import { ObservableSocket } from 'shared/observable-socket';
+import { UsersModule } from './modules/users';
+import { PlaylistModule } from './modules/playlist';
+import { ChatModule } from './modules/chat';
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
@@ -44,9 +47,6 @@ if (process.env.USE_WEBPACK === "true") {
 }
 
 
-
-
-
 // -------------------------
 // Configure Express
 app.set("view engine", "pug");
@@ -62,7 +62,19 @@ app.get("/", (req, res) => {
 });
 
 // -------------------------
+// Services
+const videoServices = [];
+const playlistRepository = {};
+
+
+// -------------------------
 // Modules
+const users = UsersModule(io);
+const chat = new ChatModule(io, users);
+const playlist = new PlaylistModule(io, users, playlistRepository, videoServices);
+
+const modules = [users, chat, playlist];
+
 
 // -------------------------
 // Socket
@@ -70,10 +82,15 @@ io.on("connection", socket => {
   console.log(`Got connection from ${socket.request.connection.remoteAddress}`);
 
   const client = new ObservableSocket(socket);
-  client.onAction("login", creds => {
-    // return Observable.of(`USER: ${creds.username}`).delay(3000);
-    throw new Error("Woah");
-  });
+
+  // register client with all modules
+  // tell all modules to register client
+  for(let mod of modules)
+    mod.registerClient(client);
+
+  // client is now registered, tell modules
+  for(let mod of modules)
+    mod.clientRegistered(client);
 });
 
 // -------------------------
@@ -85,4 +102,13 @@ function startServer() {
   });
 }
 
-startServer();
+Observable.merge(...modules.map(m => m.init$()))
+  .subscribe({
+    complete() {
+      // when all modules are complete, start the server
+      startServer();
+    },
+    error(error) {
+      console.error(`Could not init module: ${error.stack || error}`);
+    }
+});

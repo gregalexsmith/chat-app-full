@@ -68,7 +68,15 @@
 	
 	var _observableSocket = __webpack_require__(7);
 	
+	var _users = __webpack_require__(8);
+	
+	var _playlist = __webpack_require__(9);
+	
+	var _chat = __webpack_require__(10);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 	
 	var isDevelopment = process.env.NODE_ENV !== "production";
 	
@@ -81,10 +89,10 @@
 	// -------------------------
 	// Client Webpack
 	if (process.env.USE_WEBPACK === "true") {
-	  var webpackMiddleware = __webpack_require__(8);
-	  var webpackHotMiddleware = __webpack_require__(9);
-	  var webpack = __webpack_require__(10);
-	  var clientConfig = __webpack_require__(11);
+	  var webpackMiddleware = __webpack_require__(11);
+	  var webpackHotMiddleware = __webpack_require__(12);
+	  var webpack = __webpack_require__(13);
+	  var clientConfig = __webpack_require__(14);
 	  var compiler = webpack(clientConfig);
 	  app.use(webpackMiddleware(compiler, {
 	    // tells webpack what path to intercept
@@ -119,7 +127,17 @@
 	});
 	
 	// -------------------------
+	// Services
+	var videoServices = [];
+	var playlistRepository = {};
+	
+	// -------------------------
 	// Modules
+	var users = (0, _users.UsersModule)(io);
+	var chat = new _chat.ChatModule(io, users);
+	var playlist = new _playlist.PlaylistModule(io, users, playlistRepository, videoServices);
+	
+	var modules = [users, chat, playlist];
 	
 	// -------------------------
 	// Socket
@@ -127,10 +145,58 @@
 	  console.log('Got connection from ' + socket.request.connection.remoteAddress);
 	
 	  var client = new _observableSocket.ObservableSocket(socket);
-	  client.onAction("login", function (creds) {
-	    // return Observable.of(`USER: ${creds.username}`).delay(3000);
-	    throw new Error("Woah");
-	  });
+	
+	  // register client with all modules
+	  // tell all modules to register client
+	  var _iteratorNormalCompletion = true;
+	  var _didIteratorError = false;
+	  var _iteratorError = undefined;
+	
+	  try {
+	    for (var _iterator = modules[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	      var mod = _step.value;
+	
+	      mod.registerClient(client);
+	    } // client is now registered, tell modules
+	  } catch (err) {
+	    _didIteratorError = true;
+	    _iteratorError = err;
+	  } finally {
+	    try {
+	      if (!_iteratorNormalCompletion && _iterator.return) {
+	        _iterator.return();
+	      }
+	    } finally {
+	      if (_didIteratorError) {
+	        throw _iteratorError;
+	      }
+	    }
+	  }
+	
+	  var _iteratorNormalCompletion2 = true;
+	  var _didIteratorError2 = false;
+	  var _iteratorError2 = undefined;
+	
+	  try {
+	    for (var _iterator2 = modules[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	      var _mod = _step2.value;
+	
+	      _mod.clientRegistered(client);
+	    }
+	  } catch (err) {
+	    _didIteratorError2 = true;
+	    _iteratorError2 = err;
+	  } finally {
+	    try {
+	      if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	        _iterator2.return();
+	      }
+	    } finally {
+	      if (_didIteratorError2) {
+	        throw _iteratorError2;
+	      }
+	    }
+	  }
 	});
 	
 	// -------------------------
@@ -142,7 +208,17 @@
 	  });
 	}
 	
-	startServer();
+	_rxjs.Observable.merge.apply(_rxjs.Observable, _toConsumableArray(modules.map(function (m) {
+	  return m.init$();
+	}))).subscribe({
+	  complete: function complete() {
+	    // when all modules are complete, start the server
+	    startServer();
+	  },
+	  error: function error(_error) {
+	    console.error('Could not init module: ' + (_error.stack || _error));
+	  }
+	});
 
 /***/ },
 /* 1 */
@@ -434,31 +510,140 @@
 
 /***/ },
 /* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.UsersModule = undefined;
+	
+	var _module = __webpack_require__(17);
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var UsersModule = exports.UsersModule = function (_ModuleBase) {
+	  _inherits(UsersModule, _ModuleBase);
+	
+	  function UsersModule(io) {
+	    _classCallCheck(this, UsersModule);
+	
+	    var _this = _possibleConstructorReturn(this, (UsersModule.__proto__ || Object.getPrototypeOf(UsersModule)).call(this));
+	
+	    _this._io = io;
+	    return _this;
+	  }
+	
+	  return UsersModule;
+	}(_module.ModuleBase);
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.PlaylistModule = undefined;
+	
+	var _module = __webpack_require__(17);
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var PlaylistModule = exports.PlaylistModule = function (_ModuleBase) {
+	  _inherits(PlaylistModule, _ModuleBase);
+	
+	  function PlaylistModule(io, usersModule, playlistRepository, videoServices) {
+	    _classCallCheck(this, PlaylistModule);
+	
+	    var _this = _possibleConstructorReturn(this, (PlaylistModule.__proto__ || Object.getPrototypeOf(PlaylistModule)).call(this));
+	
+	    _this._io = io;
+	    // for auth
+	    _this._users = usersModule;
+	    // for loading and saving playlist data to disk or db
+	    _this._repository = playlistRepository;
+	    // used to locate video
+	    _this._services = videoServices;
+	    return _this;
+	  }
+	
+	  return PlaylistModule;
+	}(_module.ModuleBase);
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.ChatModule = undefined;
+	
+	var _module = __webpack_require__(17);
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var ChatModule = exports.ChatModule = function (_ModuleBase) {
+	  _inherits(ChatModule, _ModuleBase);
+	
+	  function ChatModule(io, usersModule) {
+	    _classCallCheck(this, ChatModule);
+	
+	    var _this = _possibleConstructorReturn(this, (ChatModule.__proto__ || Object.getPrototypeOf(ChatModule)).call(this));
+	
+	    _this._io = io;
+	    _this._users = usersModule;
+	    return _this;
+	  }
+	
+	  return ChatModule;
+	}(_module.ModuleBase);
+
+/***/ },
+/* 11 */
 /***/ function(module, exports) {
 
 	module.exports = require("webpack-dev-middleware");
 
 /***/ },
-/* 9 */
+/* 12 */
 /***/ function(module, exports) {
 
 	module.exports = require("webpack-hot-middleware");
 
 /***/ },
-/* 10 */
+/* 13 */
 /***/ function(module, exports) {
 
 	module.exports = require("webpack");
 
 /***/ },
-/* 11 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var path = __webpack_require__(12);
-	var webpack = __webpack_require__(10);
-	var ExtractTextPlugin = __webpack_require__(13);
+	var path = __webpack_require__(15);
+	var webpack = __webpack_require__(13);
+	var ExtractTextPlugin = __webpack_require__(16);
 	
 	var vendorModules = ["jquery", "socket.io-client", "rxjs"];
 	
@@ -522,16 +707,62 @@
 	module.exports.create = createConfig;
 
 /***/ },
-/* 12 */
+/* 15 */
 /***/ function(module, exports) {
 
 	module.exports = require("path");
 
 /***/ },
-/* 13 */
+/* 16 */
 /***/ function(module, exports) {
 
 	module.exports = require("extract-text-webpack-plugin");
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.ModuleBase = undefined;
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*eslint no-unused-vars: "off" */
+	
+	
+	var _rxjs = __webpack_require__(6);
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var ModuleBase = exports.ModuleBase = function () {
+	  function ModuleBase() {
+	    _classCallCheck(this, ModuleBase);
+	  }
+	
+	  _createClass(ModuleBase, [{
+	    key: 'init$',
+	
+	    // defines callback methods
+	    // allows modules to initalize asyncronsly
+	
+	    value: function init$() {
+	      return _rxjs.Observable.empty();
+	    }
+	
+	    // gets a client instance
+	
+	  }, {
+	    key: 'registerClient',
+	    value: function registerClient(client) {}
+	  }, {
+	    key: 'clientRegister',
+	    value: function clientRegister(client) {}
+	  }]);
+
+	  return ModuleBase;
+	}();
 
 /***/ }
 /******/ ]);
