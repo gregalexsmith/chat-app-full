@@ -75,7 +75,7 @@ export class UsersModule extends ModuleBase {
   registerClient(client) {
     client.onActions({
       "users:list": () => {
-        return this._usersList;
+        return this._userList;
       },
       "auth:login": ({name}) => {
         return this.loginClient$(client, name);
