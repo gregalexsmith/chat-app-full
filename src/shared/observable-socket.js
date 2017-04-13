@@ -8,6 +8,17 @@ export function clientMessage(message) {
   return error;
 }
 
+// wrapper for sending clientMessage as message
+export function fail(message) {
+	return Observable.throw({clientMessage: message});
+}
+
+// wrapper for empty observable
+let successObservable = Observable.empty();
+export function success() {
+	return successObservable;
+}
+
 export class ObservableSocket {
   get isConnected() { return this._state.isConnected; }
   get isReconnecting() { return this._state.isReconnecting; }

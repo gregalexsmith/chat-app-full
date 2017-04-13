@@ -1,15 +1,18 @@
 import _ from 'lodash';
+import { Observable } from "rxjs";
+
 import { ModuleBase } from '../lib/module';
+import { validateLogin } from "shared/validation/users";
+import { fail } from "shared/observable-socket";
+
+const AuthContext = Symbol("AuthContext");
 
 export class UsersModule extends ModuleBase {
   constructor(io) {
     super();
     this._io = io;
-    this._usersList = [
-      {name: "Foo", color: this.getColorForUsername("Foo")},
-      {name: "Bar", color: this.getColorForUsername("Bar")},
-      {name: "Baz", color: this.getColorForUsername("Baz")}
-    ];
+    this._userList = [];
+    this._users = {};
   }
 
   // Generate hsl color based of a username
@@ -29,24 +32,53 @@ export class UsersModule extends ModuleBase {
     return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
   }
 
+  getUserForClient(client) {
+    const auth = client[AuthContext];
+    return auth ? auth : null;
+  }
+
+  // handle client login
+  // returns observable for potential async operations
+  loginClient$(client, username) {
+		username = username.trim();
+
+    // validate username
+		const validator = validateLogin(username);
+		if (!validator.isValid)
+			return validator.throw$();
+
+		if (this._users.hasOwnProperty(username))
+			return fail(`Username ${username} is already taken`);
+
+    // check if the client has AuthContext
+    // ensures the client only logs in once
+		const auth = client[AuthContext] || (client[AuthContext] = {});
+		if (auth.isLoggedIn)
+			return fail("You are already logged in");
+
+    // set client auth information
+		auth.name = username;
+		auth.color = this.getColorForUsername(username);
+		auth.isLoggedIn = true;
+
+    // add to list of registered users
+		this._users[username] = client;
+		this._userList.push(auth);
+
+    // return auth info
+		this._io.emit("users:added", auth);
+		console.log(`User ${username} logged in`);
+		return Observable.of(auth);
+	}
+
   // allow the client to request a list of users
   registerClient(client) {
-
-    // fake create a new user every 2 seconds
-    let index = 0;
-    setInterval(() => {
-      const username = `New User ${index}`;
-      const user = {name: username, color: this.getColorForUsername(username)};
-      client.emit("users:added", user);
-      index++;
-    }, 2000);
-
     client.onActions({
       "users:list": () => {
         return this._usersList;
       },
-      "auth:login": () => {
-
+      "auth:login": ({name}) => {
+        return this.loginClient$(client, name);
       },
       "auth:logout": () => {
 
