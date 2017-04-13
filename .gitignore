@@ -59,3 +59,7 @@ typings/
 
 # dotenv environment variables file
 .env
+
+build/server.js
+
+build/server.js.map
