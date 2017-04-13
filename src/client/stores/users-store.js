@@ -1,5 +1,7 @@
-import { Observable } from 'rxjs';
 import _ from 'lodash';
+import { Observable } from 'rxjs';
+
+import {validateLogin} from "shared/validation/users";
 
 // users store
 // allows the client to keep track of the users list through server events
@@ -37,6 +39,16 @@ export class UsersStore {
         this._server.emit("users:list");
       });
   }
+
+  // allow the client to login and register with the server
+  login$(name) {
+    const validator = validateLogin(name);
+    if (validator.hasErrors)
+      return Observable.throw({message: validator.message});
+
+    return this._server.emitAction$("auth:login", {name});
+  }
+
 }
 
 // returns a function that mutates the state
