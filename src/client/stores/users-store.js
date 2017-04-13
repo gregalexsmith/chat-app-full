@@ -5,7 +5,11 @@ import {validateLogin} from "shared/validation/users";
 
 // users store
 // allows the client to keep track of the users list through server events
+// keeps track of user auth state
 export class UsersStore {
+  get currentUser() { return this._currentUser; }
+  get isLoggedIn() { return this._currentUser && this.currentUser.isLoggedIn; }
+
   constructor(server) {
     this._server = server;
 
@@ -14,7 +18,8 @@ export class UsersStore {
     // map each received server event to a function that returns a function that will mutate the state
     const events$ = Observable.merge(
       this._server.on$("users:list").map(opList),
-      this._server.on$("users:added").map(opAdd)
+      this._server.on$("users:added").map(opAdd),
+      this._server.on$("users:removed").map(opRemove)
     );
 
     // then for all events...
@@ -29,6 +34,17 @@ export class UsersStore {
       .publishReplay(1);
       // connect the event listeners to socket.io
       this.state$.connect();
+
+      // ---------------------
+      // Auth
+      this.currentUser$ = Observable.merge(
+        this._server.on$("auth:login"),
+        this._server.on$("auth:logout").mapTo({}))
+        .startWith({})
+        .publishReplay(1)
+        .refCount();
+
+      this.currentUser$.subscribe(user => this._currentUser = user);
 
       // ---------------------
       // Bootstrap
@@ -47,6 +63,10 @@ export class UsersStore {
       return Observable.throw({message: validator.message});
 
     return this._server.emitAction$("auth:login", {name});
+  }
+
+  logout$() {
+    return this._server.emitAction$("auth:logout");
   }
 
 }
@@ -77,6 +97,20 @@ function opAdd(user) {
     state.users.splice(insertIndex, 0, user);
     return {
       type: "add",
+      user: user,
+      state: state
+    };
+  };
+}
+
+function opRemove(user) {
+  return state => {
+    const index = _.findIndex(state.users, { name: user.name });
+    if (index !== -1) {
+      state.users.splice(index, 1);
+    }
+    return {
+      type: "remove",
       user: user,
       state: state
     };

@@ -7,6 +7,7 @@ import { fail } from "shared/observable-socket";
 
 const AuthContext = Symbol("AuthContext");
 
+// handles server side logic for users
 export class UsersModule extends ModuleBase {
   constructor(io) {
     super();
@@ -32,9 +33,13 @@ export class UsersModule extends ModuleBase {
     return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
   }
 
+  // determine if a user is logged in
   getUserForClient(client) {
     const auth = client[AuthContext];
-    return auth ? auth : null;
+    if (!auth) {
+      return null;
+    }
+    return auth.isLoggedIn ? auth : null;
   }
 
   // handle client login
@@ -71,6 +76,21 @@ export class UsersModule extends ModuleBase {
 		return Observable.of(auth);
 	}
 
+  // handle client logout
+  logoutClient(client) {
+    const auth = this.getUserForClient(client);
+    if (!auth)
+      return;
+
+    const index = this._userList.indexOf(auth);
+    this._userList.splice(index, 1);
+    delete this._users[auth.name];
+    delete client[AuthContext];
+
+    this._io.emit("users:removed", auth);
+    console.log(`User ${auth.name} logged out`);
+  }
+
   // allow the client to request a list of users
   registerClient(client) {
     client.onActions({
@@ -81,9 +101,12 @@ export class UsersModule extends ModuleBase {
         return this.loginClient$(client, name);
       },
       "auth:logout": () => {
-
+        this.logoutClient(client);
       }
+    });
 
+    client.on("disconnect", () => {
+      this.logoutClient(client);
     });
   }
 }
