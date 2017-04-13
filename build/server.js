@@ -66,15 +66,15 @@
 	
 	var _rxjs = __webpack_require__(6);
 	
-	__webpack_require__(7);
+	__webpack_require__(19);
 	
-	var _observableSocket = __webpack_require__(8);
+	var _observableSocket = __webpack_require__(7);
 	
-	var _users = __webpack_require__(9);
+	var _users = __webpack_require__(8);
 	
-	var _playlist = __webpack_require__(12);
+	var _playlist = __webpack_require__(11);
 	
-	var _chat = __webpack_require__(13);
+	var _chat = __webpack_require__(12);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -91,10 +91,10 @@
 	// -------------------------
 	// Client Webpack
 	if (process.env.USE_WEBPACK === "true") {
-	  var webpackMiddleware = __webpack_require__(14);
-	  var webpackHotMiddleware = __webpack_require__(15);
-	  var webpack = __webpack_require__(16);
-	  var clientConfig = __webpack_require__(17);
+	  var webpackMiddleware = __webpack_require__(13);
+	  var webpackHotMiddleware = __webpack_require__(14);
+	  var webpack = __webpack_require__(15);
+	  var clientConfig = __webpack_require__(16);
 	  var compiler = webpack(clientConfig);
 	  app.use(webpackMiddleware(compiler, {
 	    // tells webpack what path to intercept
@@ -260,27 +260,6 @@
 
 /***/ },
 /* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var _rxjs = __webpack_require__(6);
-	
-	_rxjs.Observable.prototype.safeSubscribe = function (next, error, complete) {
-	  var subscription = this.subscribe(function (item) {
-	    try {
-	      next(item);
-	    } catch (e) {
-	      console.error(e.stack || e);
-	      subscription.unsubscribe();
-	    }
-	  }, error, complete);
-	
-	  return subscription;
-	};
-
-/***/ },
-/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -541,7 +520,7 @@
 	}();
 
 /***/ },
-/* 9 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -557,7 +536,7 @@
 	
 	var _lodash2 = _interopRequireDefault(_lodash);
 	
-	var _module = __webpack_require__(11);
+	var _module = __webpack_require__(9);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -632,13 +611,7 @@
 	}(_module.ModuleBase);
 
 /***/ },
-/* 10 */
-/***/ function(module, exports) {
-
-	module.exports = require("lodash");
-
-/***/ },
-/* 11 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -684,7 +657,13 @@
 	}();
 
 /***/ },
-/* 12 */
+/* 10 */
+/***/ function(module, exports) {
+
+	module.exports = require("lodash");
+
+/***/ },
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -694,7 +673,7 @@
 	});
 	exports.PlaylistModule = undefined;
 	
-	var _module = __webpack_require__(11);
+	var _module = __webpack_require__(9);
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
@@ -724,7 +703,7 @@
 	}(_module.ModuleBase);
 
 /***/ },
-/* 13 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -734,7 +713,7 @@
 	});
 	exports.ChatModule = undefined;
 	
-	var _module = __webpack_require__(11);
+	var _module = __webpack_require__(9);
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
@@ -759,32 +738,32 @@
 	}(_module.ModuleBase);
 
 /***/ },
-/* 14 */
+/* 13 */
 /***/ function(module, exports) {
 
 	module.exports = require("webpack-dev-middleware");
 
 /***/ },
-/* 15 */
+/* 14 */
 /***/ function(module, exports) {
 
 	module.exports = require("webpack-hot-middleware");
 
 /***/ },
-/* 16 */
+/* 15 */
 /***/ function(module, exports) {
 
 	module.exports = require("webpack");
 
 /***/ },
-/* 17 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
-	var path = __webpack_require__(18);
-	var webpack = __webpack_require__(16);
-	var ExtractTextPlugin = __webpack_require__(19);
+	var path = __webpack_require__(17);
+	var webpack = __webpack_require__(15);
+	var ExtractTextPlugin = __webpack_require__(18);
 	
 	var vendorModules = ["jquery", "socket.io-client", "rxjs"];
 	
@@ -848,16 +827,37 @@
 	module.exports.create = createConfig;
 
 /***/ },
-/* 18 */
+/* 17 */
 /***/ function(module, exports) {
 
 	module.exports = require("path");
 
 /***/ },
-/* 19 */
+/* 18 */
 /***/ function(module, exports) {
 
 	module.exports = require("extract-text-webpack-plugin");
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _rxjs = __webpack_require__(6);
+	
+	_rxjs.Observable.prototype.safeSubscribe = function (next, error, complete) {
+	  var subscription = this.subscribe(function (item) {
+	    try {
+	      next(item);
+	    } catch (e) {
+	      console.error(e.stack || e);
+	      subscription.unsubscribe();
+	    }
+	  }, error, complete);
+	
+	  return subscription;
+	};
 
 /***/ }
 /******/ ]);
