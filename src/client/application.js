@@ -38,18 +38,3 @@ require("./components/playlist/playlist");
 // ---------------------
 // Bootstrap
 services.socket.connect();
-
-services.usersStore.currentUser$
-  .subscribe(user => {
-    console.log(user);
-  });
-
-services.usersStore.login$("woah")
-  .subscribe(user => {
-    console.log(user);
-  });
-
-
-window.setTimeout(() => {
-  services.usersStore.logout$();
-}, 3000);
