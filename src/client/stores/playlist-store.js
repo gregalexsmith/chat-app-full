@@ -6,17 +6,20 @@ export class PlaylistStore {
 
 		this._server = server;
 
+		// attach map handlers for actions recieved from the server
 		const events$ = Observable.merge(
 			server.on$("playlist:list").map(opList)
     );
 
+		// tie into our state, publish the operations
 		this.state$ = events$
 			.scan(({state}, op) => op(state), { state: defaultState })
-			.publish();
+			.publishReplay(1);
 
 		this.state$.connect();
 
 		server.on("connect", () => {
+			// request the playlist from the server on connection
 			server.emitAction$("playlist:list");
 		});
 	}
