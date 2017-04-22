@@ -1,3 +1,6 @@
+import $ from 'jquery';
+import moment from 'moment';
+
 import { ElementComponent } from '../../lib/component';
 import { PlaylistSortComponent } from './sort';
 
@@ -10,6 +13,10 @@ export class PlaylistListComponent extends ElementComponent {
   }
 
   _onAttach() {
+    const $list = this.$element;
+    // map id's to internal compoenents
+    let itemsMap = {};
+
     // ------------------
     // Child Components
     const sort = new PlaylistSortComponent();
@@ -18,8 +25,54 @@ export class PlaylistListComponent extends ElementComponent {
 
     // ------------------
     // Playlist
-    this._playlist.state$.compSubscribe(this, state => {
-      console.log(state);
-    });
+    this._playlist.state$
+      .filter(a => a.type == "list")
+      .compSubscribe(this, ({state}) => {
+        $list.empty();
+        itemsMap = {};
+        for (let source of state.list) {
+          const comp = new PlaylistItemComponent(source);
+          itemsMap[source.id] = comp;
+          comp.attach($list);
+        }
+      });
   }
+}
+
+class PlaylistItemComponent extends ElementComponent {
+	set isPlaying(isPlaying) {
+		this._setClass("is-playing", isPlaying);
+	}
+
+	set isSelected(isSelected) {
+		this._setClass("selected", isSelected);
+	}
+
+	set progress(progress) {
+		this._$progress.css("width", `${progress}%`);
+	}
+
+	get source() {
+		return this._source;
+	}
+
+	constructor(source) {
+		super("li");
+		this._source = source;
+
+		const $thumb = $(`<div class="thumb-wrapper" />`).append(
+			$(`<img class="thumb" />`).attr("src", source.thumb));
+
+		const $details =
+			$(`<div class="details" />`).append([
+				$(`<span class="title" />`).attr("title", source.title).text(source.title),
+				$(`<time />`).text(moment.duration(source.totalTime, "seconds").format())
+			]);
+
+		this._$progress = $(`<span class="progress" />`);
+		this.$element.append($(`<div class="inner" />`).append([
+			$thumb,
+			$details,
+			this._$progress]));
+	}
 }
