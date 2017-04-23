@@ -23,6 +23,11 @@ export class PlaylistStore {
 			server.emitAction$("playlist:list");
 		});
 	}
+
+	addSource$(url) {
+		return Observable.of({error: {message: "There was an error" + url}})
+			.delay(1000);
+	}
 }
 
 // take in a list of playlist items
