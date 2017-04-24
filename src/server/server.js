@@ -16,6 +16,8 @@ import { UsersModule } from './modules/users';
 import { PlaylistModule } from './modules/playlist';
 import { ChatModule } from './modules/chat';
 
+import {YOUTUBE_API_KEY} from './secrets';
+
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 // -------------------------
@@ -68,7 +70,7 @@ app.get("/", (req, res) => {
 
 // -------------------------
 // Services
-const videoServices = [new YoutubeService()];
+const videoServices = [new YoutubeService(YOUTUBE_API_KEY)];
 const playlistRepository = new FileRepository("./data/playlist.json");
 
 

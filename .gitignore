@@ -63,3 +63,5 @@ typings/
 build/server.js
 
 build/server.js.map
+
+src/server/secrets.js
