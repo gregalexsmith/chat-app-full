@@ -1,4 +1,6 @@
-import {Observable} from "rxjs";
+import { Observable } from "rxjs";
+import _ from "lodash";
+
 import { ModuleBase } from '../lib/module';
 
 import {fail} from "shared/observable-socket";
@@ -17,10 +19,17 @@ export class PlaylistModule extends ModuleBase {
     this._currentIndex = -1;
     this._currentSource = null;
     this._currentTime = 0;
+
+    setInterval(this._tickUpdateTime.bind(this), 1000);
+    setInterval(this._tickUpdateClients.bind(this), 5000);
   }
 
   init$() {
     return this._repository.getAll$().do(this.setPlaylist.bind(this));
+  }
+
+  getSourceById(id) {
+    return _.find(this._playlist, { id });
   }
 
   setPlaylist(playlist) {
@@ -31,8 +40,35 @@ export class PlaylistModule extends ModuleBase {
     this._io.emit("playlist:list", this._playlist);
   }
 
-  setCurrentSource() {
+  setCurrentSource(source) {
+		if (source == null) {
+			this._currentSource = null;
+			this._currentIndex = this._currentTime = 0;
+		} else {
+			const newIndex = this._playlist.indexOf(source);
+			if (newIndex === -1)
+				throw new Error(`Cannot set current to source ${source.id} / ${source.title}, it was not found`);
 
+			this._currentTime = 0;
+			this._currentSource = source;
+			this._currentIndex = newIndex;
+		}
+
+		this._io.emit("playlist:current", this._createCurrentEvent());
+		console.log(`playlist: setting current to ${source ? source.title : "{nothing}"}`);
+	}
+
+  playNextSource() {
+    if (!this._playlist.length) {
+      // empty playlist
+      this.setCurrentSource(null);
+      return;
+    }
+    if (this._currentIndex + 1 >= this._playlist.length)
+      // last item of the playlist, loop back around
+      this.setCurrentSource(this._playlist[0]);
+    else
+      this.setCurrentSource(this._playlist[this._currentIndex + 1]);
   }
 
   addSourceFromUrl$(url) {
@@ -82,6 +118,29 @@ export class PlaylistModule extends ModuleBase {
     console.log(`playlist: added ${source.title}`);
   }
 
+
+  _tickUpdateTime() {
+		if (this._currentSource == null) {
+			if (this._playlist.length)
+				this.setCurrentSource(this._playlist[0]);
+		} else {
+			this._currentTime++;
+			if (this._currentTime > this._currentSource.totalTime + 2)
+				this.playNextSource();
+		}
+	}
+
+  _tickUpdateClients() {
+    this._io.emit("playlist:current", this._createCurrentEvent());
+  }
+
+  _createCurrentEvent() {
+    if (this._currentSource)
+      return {id: this._currentSource.id, time: this._currentTime};
+    else
+      return { id: null, time: 0};
+  }
+
   registerClient(client) {
     // helper for checking auth state
     const isLoggedIn = () => this._users.getUserForClient(client) !== null;
@@ -89,6 +148,10 @@ export class PlaylistModule extends ModuleBase {
     client.onActions({
       "playlist:list": () => {
         return this._playlist;
+      },
+      "playlist:current": () => {
+        // tell client what item is currently playing
+        return this._createCurrentEvent();
       },
       "playlist:add": ({url}) => {
         if (!isLoggedIn())
