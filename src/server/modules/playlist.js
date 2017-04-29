@@ -141,6 +141,29 @@ export class PlaylistModule extends ModuleBase {
       return { id: null, time: 0};
   }
 
+  deleteSourceById(id) {
+		const source = this.getSourceById(id);
+		if (!source)
+			throw new Error(`Cannot find source ${id}`);
+
+		const sourceIndex = this._playlist.indexOf(source);
+
+    // move to the next item if user deletes current item
+		if (source == this._currentSource)
+			if (this._playlist.length == 1)
+				this.setCurrentSource(null);
+			else
+				this.playNextSource();
+
+		this._playlist.splice(sourceIndex, 1);
+
+		if (this._currentSource)
+			this._currentIndex = this._playlist.indexOf(this._currentSource);
+
+		this._io.emit("playlist:removed", {id});
+		console.log(`playlist: deleted ${source.title}`);
+	}
+
   registerClient(client) {
     // helper for checking auth state
     const isLoggedIn = () => this._users.getUserForClient(client) !== null;
@@ -158,6 +181,22 @@ export class PlaylistModule extends ModuleBase {
           return fail("You must be logged in to do that");
 
         return this.addSourceFromUrl$(url);
+      },
+      "playlist:set-current": ({id}) => {
+        if (!isLoggedIn())
+          return fail("You must be logged in to do that");
+
+        const source = this.getSourceById(id);
+        if (!source)
+          return fail(`Cannot find source ${id}`);
+
+        this.setCurrentSource(source);
+      },
+      "playlist:remove": ({id}) => {
+        if (!isLoggedIn())
+          return fail("You must be logged in to do that");
+
+        this.deleteSourceById(id);
       }
     });
   }

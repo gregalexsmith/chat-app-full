@@ -51,6 +51,13 @@ export class PlaylistListComponent extends ElementComponent {
         this._addItem(comp, addAfter ? itemsMap[addAfter.id] : null);
       });
 
+    this._playlist.actions$
+      .filter(a => a.type === "remove")
+      .compSubscribe(this, ({source}) => {
+        const comp = itemsMap[source.id];
+        this._removeItem(comp);
+      });
+
     // ----------------------
     // Current Item
     let lastComp = null;
@@ -107,6 +114,14 @@ export class PlaylistListComponent extends ElementComponent {
         comp.$element
           .removeClass("selected")
           .css({ height: "", opacity: "" });
+      });
+  }
+
+  _removeItem(comp) {
+    comp.$element
+      .addClass("remove")
+      .animate({ opacity: 0, height: 0 }, 250, () => {
+        comp.detach();
       });
   }
 }

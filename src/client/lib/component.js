@@ -67,7 +67,7 @@ export class ElementComponent extends ComponentBase {
     if (isOn) {
       this._$element.addClass(className);
     } else {
-      this._$element.remobeClass(className);
+      this._$element.removeClass(className);
     }
   }
 }
