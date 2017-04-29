@@ -54,6 +54,7 @@ export class PlaylistListComponent extends ElementComponent {
     // ----------------------
     // Current Item
     let lastComp = null;
+    //check for updates on on playlist current item
     this._playlist.serverTime$
       .compSubscribe(this, current => {
 
@@ -72,6 +73,7 @@ export class PlaylistListComponent extends ElementComponent {
         }
 
         if (lastComp != currentComp) {
+          // update the client with the current item
           if (lastComp != null)
             lastComp.isPlaying = false;
 
